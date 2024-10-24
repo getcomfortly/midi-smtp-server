@@ -91,7 +91,11 @@ module MidiSmtpServer
           end_index = cert_lines.index { |line| line =~ /-end[^-]+key-/i }
           @ssl_context.key = OpenSSL::PKey::RSA.new(cert_lines[key_index..end_index].join)
         else
-          @ssl_context.key = OpenSSL::PKey::RSA.new(File.open(@key_path.to_s))
+          begin
+            @ssl_context.key = OpenSSL::PKey::RSA.new(File.open(@key_path.to_s))
+          rescue OpenSSL::PKey::RSAError
+            @ssl_context.key = OpenSSL::PKey::EC.new(File.read(@key_path.to_s))
+          end
         end
       end
     end
